@@ -49,3 +49,6 @@ ChatGPT API를 이용하여 특정 영화를 요약하거나, 비슷한 장르�
 - README 정리
 - 제출
 ```
+
+# 와이어프레임
+![wireframe](./images/wireframe_01.png)
