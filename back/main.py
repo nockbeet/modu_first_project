@@ -1,12 +1,31 @@
 from fastapi import FastAPI, HTTPException, Cookie, Body
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from models import UserCreate, UserLogin, UserResponse, ChatMessage
 from auth import create_user, authenticate_user, create_session, get_current_user, logout_user
 from typing import Optional, List
 from chatgpt_api import chatgptAPIService
 
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+
 # 🌐 웹사이트 만들기
 app = FastAPI(title="MovieBot")
+
+# static front 폴더 경로 계산
+FRONT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../front"))
+# print("Static path:", FRONT_DIR)  # 👈 경로 확인용 출력
+# mount static files
+app.mount("/static", StaticFiles(directory=FRONT_DIR), name="static")
+
+# CORS 미들웨어 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ChatGPT 클라이언트
 chatgpt_client = chatgptAPIService()
@@ -15,12 +34,17 @@ chatgpt_client = chatgptAPIService()
 chat_histories = {}
 # chat_histories: dict[str, list[ChatMessage]] = {}
 
-@app.get("/")
-async def 홈페이지():
-    """
-    🏠 홈페이지 - 웹사이트에 처음 들어왔을 때 보는 페이지
-    """
-    return {"message": "안녕하세요! MovieBot을 사용하려면 로그인하세요! 🎉"}
+# @app.get("/")
+# async def 홈페이지():
+#     """
+#     🏠 홈페이지 - 웹사이트에 처음 들어왔을 때 보는 페이지
+#     """
+#     return {"message": "안녕하세요! MovieBot을 사용하려면 로그인하세요! 🎉"}
+
+# --- 루트 접속 시 로그인 화면으로 리디렉트 ---
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    return RedirectResponse(url="/static/login.html")
 
 @app.post("/register")
 async def 회원가입(user_data: UserCreate):
